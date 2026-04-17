@@ -31,6 +31,7 @@ public class CommonExceptionHandler {
      */
     @ExceptionHandler(value = BizException.class)
     public R bizExceptionHandler(BizException e) {
+        log.error("bizExceptionHandler", e);
         return R.failed(e.getMessage());
     }
 
@@ -43,6 +44,7 @@ public class CommonExceptionHandler {
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
     public R methodArgumentNotValidExceptionHandler(MethodArgumentNotValidException e) {
         BindingResult result = e.getBindingResult();
+        log.error("methodArgumentNotValidExceptionHandler", e);
         if (CollUtil.isNotEmpty(result.getAllErrors())) {
             return R.failed(result.getAllErrors().get(0).getDefaultMessage());
         }
