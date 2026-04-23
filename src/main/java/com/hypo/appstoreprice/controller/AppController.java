@@ -50,6 +50,16 @@ public class AppController {
     }
 
     /**
+     * get initial app list
+     *
+     * @return {@link List }<{@link GetAppListResDTO }>
+     */
+    @PostMapping("getInitialAppList")
+    public List<GetAppListResDTO> getInitialAppList() {
+        return appService.getInitialAppList();
+    }
+
+    /**
      * get app list
      *
      * @param reqDTO req dto

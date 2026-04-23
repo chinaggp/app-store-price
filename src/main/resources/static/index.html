@@ -691,7 +691,7 @@
             </div>
 
             <!-- 空状态引导 -->
-            <div x-show="!loading && results.length === 0 && !error && !searched && appList.length === 0"
+            <div x-show="!loadingAppList && !loading && results.length === 0 && !error && !searched && appList.length === 0"
                 class="text-center py-20 opacity-40">
                 <svg class="w-16 h-16 mx-auto text-slate-300 mb-4" fill="none" stroke="currentColor"
                     viewBox="0 0 24 24">
@@ -772,6 +772,7 @@
                 // 初始化
                 init() {
                     this.getAreaList();
+                    this.getInitialAppList();
                     this.getPopularSearchWords();
                     this.applyColorMode();
                     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
@@ -925,6 +926,21 @@
                     } catch (err) {
                     } finally {
                         this.areaListLoading = false;
+                    }
+                },
+
+                // 获取初始应用列表
+                async getInitialAppList() {
+                    this.loadingAppList = true;
+                    this.errorAppList = '';
+                    try {
+                        const response = await axios.post('/app/getInitialAppList', {});
+                        if (response.data.code === 0) {
+                            this.appList = response.data.data || [];
+                        }
+                    } catch (err) {
+                    } finally {
+                        this.loadingAppList = false;
                     }
                 },
 
