@@ -132,7 +132,7 @@ public class AppService {
      * @param recordPopularSearchWord record popular search word
      * @return {@link List }<{@link GetAppListResDTO }>
      */
-    private List<GetAppListResDTO> getAppList(GetAppListReqDTO reqDTO, boolean recordPopularSearchWord) {
+    public List<GetAppListResDTO> getAppList(GetAppListReqDTO reqDTO, boolean recordPopularSearchWord) {
         if (recordPopularSearchWord) {
             // 记录搜索次数
             POPULAR_SEARCH_WORD.add(reqDTO.getAppName());
@@ -269,6 +269,11 @@ public class AppService {
                 // 提取开发者信息
                 resDTO.setDeveloper(jsonResult.getJSONObject("developerAction").getString("title"));
                 resDTO.setAppStoreUrl(appStoreUrl);
+                // 提取图标信息
+                JSONObject iconObj = jsonResult.getJSONObject("lockup").getJSONObject("icon");
+                if (iconObj != null) {
+                    resDTO.setIconUrl(iconObj.getString("template"));
+                }
                 // 提取价格信息
                 resDTO.setPrice(parsePrice(jsonResult.getJSONObject("lockup").getJSONObject("offerDisplayProperties").getString("priceFormatted"), areaEnum));
                 // 查找所有内购列表项

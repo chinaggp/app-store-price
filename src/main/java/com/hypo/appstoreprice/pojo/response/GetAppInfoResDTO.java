@@ -55,6 +55,11 @@ public class GetAppInfoResDTO {
     private Money price;
 
     /**
+     * icon url
+     */
+    private String iconUrl;
+
+    /**
      * in-app purchase list
      */
     private List<InAppPurchaseDTO> inAppPurchaseList;

@@ -1,5 +1,6 @@
 .DS_Store
 /target
+.agent
 
 # Editor directories and files
 .idea
