@@ -46,6 +46,16 @@ import java.util.stream.Collectors;
 public class AppService {
 
     /**
+     * initial app list search area
+     */
+    private static final String INITIAL_APP_LIST_AREA_CODE = "us";
+
+    /**
+     * initial app list search word
+     */
+    private static final String INITIAL_APP_LIST_APP_NAME = "ChatGPT";
+
+    /**
      * app 搜索列表缓存
      */
     private static final Cache<String, List<GetAppListResDTO>> APP_LIST_CACHE = new TimedCache<>(Duration.ofDays(1L).toMillis(), new ConcurrentHashMap<>());
@@ -94,14 +104,39 @@ public class AppService {
     }
 
     /**
+     * get initial app list
+     *
+     * @return {@link List }<{@link GetAppListResDTO }>
+     */
+    public List<GetAppListResDTO> getInitialAppList() {
+        GetAppListReqDTO reqDTO = new GetAppListReqDTO();
+        reqDTO.setAreaCode(INITIAL_APP_LIST_AREA_CODE);
+        reqDTO.setAppName(INITIAL_APP_LIST_APP_NAME);
+        return this.getAppList(reqDTO, false);
+    }
+
+    /**
      * get app list
      *
      * @param reqDTO req dto
      * @return {@link List }<{@link GetAppListResDTO }>
      */
     public List<GetAppListResDTO> getAppList(GetAppListReqDTO reqDTO) {
-        // 记录搜索次数
-        POPULAR_SEARCH_WORD.add(reqDTO.getAppName());
+        return this.getAppList(reqDTO, true);
+    }
+
+    /**
+     * get app list
+     *
+     * @param reqDTO req dto
+     * @param recordPopularSearchWord record popular search word
+     * @return {@link List }<{@link GetAppListResDTO }>
+     */
+    private List<GetAppListResDTO> getAppList(GetAppListReqDTO reqDTO, boolean recordPopularSearchWord) {
+        if (recordPopularSearchWord) {
+            // 记录搜索次数
+            POPULAR_SEARCH_WORD.add(reqDTO.getAppName());
+        }
 
         // 无锁检查缓存
         String cacheKey = StrUtil.format("{}-{}", reqDTO.getAreaCode(), reqDTO.getAppName());
