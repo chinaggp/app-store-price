@@ -8,6 +8,7 @@ public class HomePageResDTO {
     private List<DiscountAppDTO> recentDiscounts;
     private FeaturedAppDTO featured;
     private List<RegionDealDTO> regionDeals;
+    private List<ExchangeRateCardResDTO> exchangeRates;
 
     @Data
     public static class DiscountAppDTO {

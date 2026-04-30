@@ -15,14 +15,15 @@ import java.util.List;
 public class HomePageService {
 
     private final AppInfoMapper appInfoMapper;
+    private final ExchangeRateService exchangeRateService;
 
     public HomePageResDTO getHomePageData() {
         HomePageResDTO res = new HomePageResDTO();
-        
+
         List<AppInfoEntity> apps = appInfoMapper.selectList(
             new LambdaQueryWrapper<AppInfoEntity>().last("LIMIT 10")
         );
-        
+
         List<HomePageResDTO.DiscountAppDTO> discounts = new ArrayList<>();
         for (AppInfoEntity app : apps) {
             HomePageResDTO.DiscountAppDTO dto = new HomePageResDTO.DiscountAppDTO();
@@ -34,32 +35,20 @@ public class HomePageService {
             discounts.add(dto);
         }
         res.setRecentDiscounts(discounts);
-        
-        if (!apps.isEmpty()) {
-            AppInfoEntity featApp = apps.get(0);
-            HomePageResDTO.FeaturedAppDTO featDto = new HomePageResDTO.FeaturedAppDTO();
-            featDto.setAppId(featApp.getAppId());
-            featDto.setName(featApp.getName());
-            featDto.setSubtitle(featApp.getSubtitle());
-            featDto.setIconUrl(featApp.getIconUrl());
-            featDto.setDiscountDesc("今日精选降价");
-            res.setFeatured(featDto);
-        }
-        
-        List<HomePageResDTO.RegionDealDTO> deals = new ArrayList<>();
-        if (apps.size() > 1) {
-            AppInfoEntity trApp = apps.get(1 % apps.size());
-            HomePageResDTO.RegionDealDTO deal = new HomePageResDTO.RegionDealDTO();
-            deal.setAreaCode("tr");
-            deal.setAreaName("土耳其");
-            deal.setAppId(trApp.getAppId());
-            deal.setAppName(trApp.getName());
-            deal.setIconUrl(trApp.getIconUrl());
-            deal.setCnyPrice("¥2.50");
-            deals.add(deal);
-        }
-        res.setRegionDeals(deals);
 
+        if (!apps.isEmpty()) {
+            AppInfoEntity featuredApp = apps.get(0);
+            HomePageResDTO.FeaturedAppDTO featured = new HomePageResDTO.FeaturedAppDTO();
+            featured.setAppId(featuredApp.getAppId());
+            featured.setName(featuredApp.getName());
+            featured.setSubtitle(featuredApp.getSubtitle());
+            featured.setIconUrl(featuredApp.getIconUrl());
+            featured.setDiscountDesc("今日精选");
+            res.setFeatured(featured);
+        }
+
+        res.setRegionDeals(new ArrayList<>());
+        res.setExchangeRates(exchangeRateService.getHomePageExchangeRates());
         return res;
     }
 }
