@@ -156,12 +156,13 @@ public class AppService {
             }
             List<GetAppListResDTO> resultList = new CopyOnWriteArrayList<>();
             CollUtil.newArrayList("iphone", "ipad", "mac", "tv").parallelStream().forEach(entity -> {
+                try {
                 String searchUrl = StrUtil.format("https://apps.apple.com/{}/{}/search?term={}", reqDTO.getAreaCode(), entity, StrUtil.trim(reqDTO.getAppName()));
                 HttpResponse response = HttpUtil.createGet(searchUrl).execute();
                 if (response.getStatus() != HttpStatus.OK.value()) {
                     String errorMessage = StrUtil.format("search failed, areaCode: {}, appName: {}", reqDTO.getAreaCode(), reqDTO.getAppName());
                     log.error(errorMessage);
-                    throw new BizException(errorMessage);
+                    return;
                 }
                 // 解析 HTML
                 Document doc = Jsoup.parse(response.body());
@@ -191,8 +192,14 @@ public class AppService {
                     dto.setPlatform(entity);
                     return dto;
                 }).toList();
-                resultList.addAll(entityResultList);
+                    resultList.addAll(entityResultList);
+                } catch (Exception ex) {
+                    log.error("search request failed, areaCode: {}, appName: {}, platform: {}", reqDTO.getAreaCode(), reqDTO.getAppName(), entity, ex);
+                }
             });
+            if (resultList.isEmpty()) {
+                throw new BizException("failed to fetch app list from App Store");
+            }
             APP_LIST_CACHE.put(cacheKey, resultList.stream().collect(Collectors.toMap(
                     GetAppListResDTO::getAppId,
                     Function.identity(),
@@ -240,6 +247,7 @@ public class AppService {
             }
             Mutable<List<GetAppInfoResDTO>> resultList = new MutableObj<>(new CopyOnWriteArrayList<>());
             Arrays.stream(AreaEnum.values()).parallel().forEach(areaEnum -> {
+                try {
                 String appStoreUrl = StrUtil.format("https://apps.apple.com/{}/app/id{}", areaEnum.getCode(), appId);
                 HttpResponse response = HttpUtil.createGet(appStoreUrl, true).execute();
                 if (response.getStatus() != HttpStatus.OK.value()) {
@@ -296,7 +304,10 @@ public class AppService {
                     inAppPurchaseList.add(purchaseDTO);
                 }
                 resDTO.setInAppPurchaseList(inAppPurchaseList);
-                resultList.get().add(resDTO);
+                    resultList.get().add(resDTO);
+                } catch (Exception ex) {
+                    log.error("fetch app info failed, appId: {}, area: {}", appId, areaEnum.getCode(), ex);
+                }
             });
             // 有售价的应用，按价格升序，有内购的应用，按内购价格升序
             resultList.set(resultList.get().stream()
@@ -307,6 +318,9 @@ public class AppService {
                         .orElse(InAppPurchaseDTO.none())
                         .getPrice().getCnyPrice()))
                 .collect(Collectors.toList()));
+            if (resultList.get().isEmpty()) {
+                throw new BizException("failed to fetch app price data from App Store");
+            }
             APP_INFO_CACHE.put(appId, resultList.get());
         }
         return APP_INFO_CACHE.get(appId);

@@ -1,6 +1,7 @@
 package com.hypo.appstoreprice.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.hypo.appstoreprice.common.BizException;
 import com.hypo.appstoreprice.pojo.request.GetAppInfoReqDTO;
 import com.hypo.appstoreprice.pojo.request.GetAppListReqDTO;
 import com.hypo.appstoreprice.pojo.response.AreaResDTO;
@@ -27,6 +28,9 @@ import com.hypo.appstoreprice.task.PriceSnapshotTask;
 import cn.hutool.core.date.DateUtil;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * app controller
@@ -45,6 +49,9 @@ public class AppController {
     private final PriceSnapshotTask priceSnapshotTask;
     private final PriceSnapshotService priceSnapshotService;
     private final HomePageService homePageService;
+
+    @Value("${debug.trigger-price-snapshot-enabled:false}")
+    private boolean triggerPriceSnapshotEnabled;
 
     /**
      * get homepage data
@@ -78,7 +85,10 @@ public class AppController {
      */
     @PostMapping("triggerPriceSnapshot")
     public void triggerPriceSnapshot() {
-        new Thread(priceSnapshotTask::executeSnapshot).start();
+        if (!triggerPriceSnapshotEnabled) {
+            throw new BizException("triggerPriceSnapshot is disabled");
+        }
+        CompletableFuture.runAsync(priceSnapshotTask::executeSnapshot);
     }
 
     /**

@@ -27,20 +27,20 @@ public class PriceSnapshotTask {
     private final PriceSnapshotService priceSnapshotService;
     private final AppInfoMapper appInfoMapper;
 
-    @Scheduled(cron = "0 0 4 * * ?") // 每天凌晨 4 点执行
+    @Scheduled(cron = "${price-snapshot.cron:0 0 4 * * ?}")
     public void executeSnapshot() {
-        log.info("开始执行应用价格快照定时任务...");
+        log.info("Start price snapshot task");
         String today = DateUtil.formatDate(new Date());
-        
+
         List<WatchedAppEntity> watchedApps = watchedAppMapper.selectList(
             new LambdaQueryWrapper<WatchedAppEntity>().eq(WatchedAppEntity::getEnabled, 1)
         );
 
         for (WatchedAppEntity app : watchedApps) {
             try {
-                log.info("正在获取应用价格: {} - {}", app.getAppId(), app.getName());
+                log.info("Fetching app price snapshot: {} - {}", app.getAppId(), app.getName());
                 List<GetAppInfoResDTO> appInfos = appService.getAppInfo(app.getAppId());
-                
+
                 boolean infoUpdated = false;
                 for (GetAppInfoResDTO info : appInfos) {
                     if (info.getPrice() != null) {
@@ -53,7 +53,7 @@ public class PriceSnapshotTask {
                             today
                         );
                     }
-                    
+
                     if (!infoUpdated) {
                         AppInfoEntity appInfo = appInfoMapper.selectOne(
                             new LambdaQueryWrapper<AppInfoEntity>().eq(AppInfoEntity::getAppId, app.getAppId())
@@ -78,11 +78,11 @@ public class PriceSnapshotTask {
                         infoUpdated = true;
                     }
                 }
-                Thread.sleep(1000); // 避免请求过快
+                Thread.sleep(1000);
             } catch (Exception e) {
-                log.error("获取应用 {} 价格快照失败: {}", app.getAppId(), e.getMessage());
+                log.error("Fetch snapshot failed for app {}: {}", app.getAppId(), e.getMessage(), e);
             }
         }
-        log.info("应用价格快照定时任务执行完成");
+        log.info("Price snapshot task finished");
     }
 }

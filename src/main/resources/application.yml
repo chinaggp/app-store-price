@@ -3,7 +3,7 @@ server:
 
 spring:
   datasource:
-    url: jdbc:sqlite:./data/app-store-price.db
+    url: jdbc:sqlite:${APP_STORE_PRICE_DATA_DIR:./data}/app-store-price.db
     driver-class-name: org.sqlite.JDBC
   sql:
     init:
@@ -18,3 +18,9 @@ mybatis-plus:
 
 exchange-rate:
   frankfurter-base-url: https://api.frankfurter.dev/v1
+
+debug:
+  trigger-price-snapshot-enabled: ${TRIGGER_PRICE_SNAPSHOT_ENABLED:false}
+
+price-snapshot:
+  cron: ${PRICE_SNAPSHOT_CRON:0 0 4 * * ?}
