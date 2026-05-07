@@ -46,12 +46,11 @@ public class AppController {
     private final AppService appService;
     private final CategoryService categoryService;
     private final AppInfoService appInfoService;
-    private final PriceSnapshotTask priceSnapshotTask;
+
     private final PriceSnapshotService priceSnapshotService;
     private final HomePageService homePageService;
 
-    @Value("${debug.trigger-price-snapshot-enabled:false}")
-    private boolean triggerPriceSnapshotEnabled;
+
 
     /**
      * get homepage data
@@ -78,17 +77,6 @@ public class AppController {
             dto.setPriceText("");
             return dto;
         }).collect(java.util.stream.Collectors.toList());
-    }
-
-    /**
-     * trigger price snapshot (debug only)
-     */
-    @PostMapping("triggerPriceSnapshot")
-    public void triggerPriceSnapshot() {
-        if (!triggerPriceSnapshotEnabled) {
-            throw new BizException("triggerPriceSnapshot is disabled");
-        }
-        CompletableFuture.runAsync(priceSnapshotTask::executeSnapshot);
     }
 
     /**
